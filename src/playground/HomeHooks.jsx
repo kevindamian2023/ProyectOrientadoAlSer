@@ -8,6 +8,8 @@ function HomeHooks() {
         <div className='list-group'>
           <a href="/useState" className='list-group-item'>Ir a useState</a>
           <a href="/useNavigate" className='list-group-item'>Ir a useNavigate</a>
+          {/* ejemplo para pasar a rama develop */}
+          <a href="/useNavigate" className='list-group-item'>Ir a useNavigate 2</a>
           <a href="#" className='list-group-item'>Ir a </a>
         </div>
       </div>
