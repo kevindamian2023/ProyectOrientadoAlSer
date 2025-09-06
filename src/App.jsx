@@ -5,7 +5,7 @@ import HomeHooks from './playground/HomeHooks.jsx'
 import HookUseNavigate from './playground/HookUseNavigate.jsx'
 function App() {
   return (
-
+    
     <BrowserRouter>
       <Routes>
         {/* vista principal */}
