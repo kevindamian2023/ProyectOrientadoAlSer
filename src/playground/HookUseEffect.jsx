@@ -1,17 +1,24 @@
 import { useState, useEffect } from "react";
 
-export default function HookUseEffect() {
-  const [contador, setContador] = useState(0);
+function UseEffectExample() {
+  const [count, setCount] = useState(0);
+  const [message, setMessage] = useState("Aún no has hecho clic");
 
   useEffect(() => {
-    document.title = `Contador: ${contador}`;
-  }, [contador]);
+    if (count > 0) {
+      setMessage(`Has hecho clic ${count} veces`);
+    }
+  }, [count]);
 
   return (
     <div>
-      <h2>useEffect</h2>
-      <p>{contador}</p>
-      <button onClick={() => setContador(contador + 1)}>Incrementar</button>
+      <h2>Ejemplo de useEffect</h2>
+      <p>{message}</p>
+      <button onClick={() => setCount(count + 1)}>Clic</button>
+      <a href="/">Ir a Home</a>
+
     </div>
   );
 }
+
+export default UseEffectExample;
