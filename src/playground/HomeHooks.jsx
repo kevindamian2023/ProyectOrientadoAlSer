@@ -115,53 +115,69 @@ function HomeHooks() {
                 <td>Inserta estilos antes de que el navegador pinte la UI.</td>
                 <td>estilos</td>
               </tr>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+             <tr>
+                <td>useCallback</td>
+                <td>
+                  <Link to="/useCallback" className='btn btn-primary'>Ir a ejemplo</Link>
+                </td>
+                <td>Memoriza funciones para evitar re-renderizados innecesarios</td>
+                <td>Optimización de rendimiento</td>
               </tr>
               <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>useContext</td>
+                <td>
+                  <Link to="/useContext" className='btn btn-primary'>Ir a ejemplo</Link>
+                </td>
+                <td> Consume valores del contexto de React sin prop drilling</td>
+                <td>Gestión de estado global</td>
               </tr>
               <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>useDeferredValue</td>
+                <td>
+                  <Link to="/useDeferredValue" className='btn btn-primary'>Ir a ejemplo</Link>
+                </td>
+                <td>Aplaza actualizaciones de valores para mejorar la responsividad</td>
+                <td>Optimización de rendimiento</td>
               </tr>
               <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>useLayoutEffect</td>
+                <td>
+                  <Link to="/useLayoutEffect" className='btn btn-primary'>Ir a ejemplo</Link>
+                </td>
+                <td>Ejecuta efectos síncronamente después de mutaciones DOM</td>
+                <td>Efectos secundarios</td>
               </tr>
               <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>useMemo</td>
+                <td>
+                  <Link to="/useMemo" className='btn btn-primary'>Ir a ejemplo</Link>
+                </td>
+                <td>Memoriza valores computados para evitar cálculos repetitivos</td>
+                <td>Optimización de rendimiento</td>
               </tr>
               <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>useReducer</td>
+                <td>
+                  <Link to="/useReducer" className='btn btn-primary'>Ir a ejemplo</Link>
+                </td>
+                <td>Gestiona estado complejo con lógica tipo Redux</td>
+                <td>Gestión de estado</td>
               </tr>
               <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>useRef</td>
+                <td>
+                  <Link to="/useRef" className='btn btn-primary'>Ir a ejemplo</Link>
+                </td>
+                <td>Crea referencias mutables que persisten entre renderizados</td>
+                <td>Referencias DOM/Valores</td>
               </tr>
               <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>useTransition</td>
+                <td>
+                  <Link to="/useTransition" className='btn btn-primary'>Ir a ejemplo</Link>
+                </td>
+                <td>Marca actualizaciones como no urgentes para mejor UX</td>
+                <td>Optimización de rendimiento</td>
               </tr>
             </tbody>
           </table>
