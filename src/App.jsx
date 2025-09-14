@@ -13,6 +13,15 @@ import HookUseImperativeHandle from './playground/HookUseImperativeHandle.jsx'
 import HookUseOptimistic from './playground/HookUseOptimistic.jsx'
 import HookUseSyncExternalStore from './playground/HookUseSyncExternalStore.jsx'
 import HookUseInsertionEffect from './playground/useInsertionEffect.jsx'
+import HookuseCallback from './playground/HookuseCallback.jsx'
+import HookuseMemo from './playground/HookuseMemo.jsx'
+import HookuseRef from './playground/HookuseRef.jsx'
+import HookuseContext from './playground/HookuseContext.jsx'
+import HookuseReducer from './playground/HookuseReducer.jsx'
+import HookuseLayoutEffect from './playground/HookuseLayoutEffect.jsx'
+import HookuseTransition from './playground/HookuseTransition.jsx'
+import HookuseDeferredValue from './playground/HookuseDeferredValue.jsx'
+
 function App() {
   return (
     
@@ -33,6 +42,14 @@ function App() {
         <Route path="/useOptimistic" element={<HookUseOptimistic />}></Route>
         <Route path="/useSyncExternalStore" element={<HookUseSyncExternalStore />}></Route>
         <Route path="/useInsertionEffect" element={<HookUseInsertionEffect />}></Route>
+        <Route path="/useCallback" element={<HookuseCallback />}></Route>
+        <Route path="/useMemo" element={<HookuseMemo />}></Route>
+        <Route path="/useRef" element={<HookuseRef />}></Route>
+        <Route path="/useContext" element={<HookuseContext />}></Route>
+        <Route path="/useReducer" element={<HookuseReducer />}></Route>
+        <Route path="/useLayoutEffect" element={<HookuseLayoutEffect />}></Route>
+        <Route path="/useTransition" element={<HookuseTransition />}></Route>
+        <Route path="/useDeferredValue" element={<HookuseDeferredValue />}></Route>
       </Routes>
      </BrowserRouter >
 
