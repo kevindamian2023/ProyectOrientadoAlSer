@@ -1,5 +1,7 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css'
+
+// tus imports de hooks
 import HookUseState from './playground/HookUseState.jsx'
 import HomeHooks from './playground/HomeHooks.jsx'
 import HookUseNavigate from './playground/HookUseNavigate.jsx'
@@ -22,38 +24,41 @@ import HookuseLayoutEffect from './playground/HookuseLayoutEffect.jsx'
 import HookuseTransition from './playground/HookuseTransition.jsx'
 import HookuseDeferredValue from './playground/HookuseDeferredValue.jsx'
 
+// dashboard
+import Dashboard from "./Dashboard";
+
 function App() {
   return (
-    
     <BrowserRouter>
       <Routes>
-        {/* vista principal */}
-        <Route path="/" element={<HomeHooks />}></Route>
-        {/* vista de ejemplo de hook useState */}
-        <Route path="/useState" element={<HookUseState />}></Route>
-        <Route path="/useNavigate" element={<HookUseNavigate />}></Route>
-        <Route path="/useEffect" element={<HookUseEffect />}></Route>
-        <Route path="/useActionState" element={<HookUseActionState />}></Route>
-        <Route path="/useDebugValue" element={<HookUseDebugValue />}></Route>
-        <Route path="/useFormState" element={<HookUseFormState />}></Route>
-        <Route path="/useFormStatus" element={<HookUseFormStatus />}></Route>
-        <Route path="/useId" element={<HookUseId />}></Route>
-        <Route path="/useImperativeHandle" element={<HookUseImperativeHandle />}></Route>
-        <Route path="/useOptimistic" element={<HookUseOptimistic />}></Route>
-        <Route path="/useSyncExternalStore" element={<HookUseSyncExternalStore />}></Route>
-        <Route path="/useInsertionEffect" element={<HookUseInsertionEffect />}></Route>
-        <Route path="/useCallback" element={<HookuseCallback />}></Route>
-        <Route path="/useMemo" element={<HookuseMemo />}></Route>
-        <Route path="/useRef" element={<HookuseRef />}></Route>
-        <Route path="/useContext" element={<HookuseContext />}></Route>
-        <Route path="/useReducer" element={<HookuseReducer />}></Route>
-        <Route path="/useLayoutEffect" element={<HookuseLayoutEffect />}></Route>
-        <Route path="/useTransition" element={<HookuseTransition />}></Route>
-        <Route path="/useDeferredValue" element={<HookuseDeferredValue />}></Route>
-      </Routes>
-     </BrowserRouter >
+        {/* dashboard como página principal */}
+        <Route path="/" element={<Dashboard />} />
 
+        {/* agrupamos hooks en /hooks */}
+        <Route path="/hooks" element={<HomeHooks />} />
+        <Route path="/hooks/useState" element={<HookUseState />} />
+        <Route path="/hooks/useNavigate" element={<HookUseNavigate />} />
+        <Route path="/hooks/useEffect" element={<HookUseEffect />} />
+        <Route path="/hooks/useActionState" element={<HookUseActionState />} />
+        <Route path="/hooks/useDebugValue" element={<HookUseDebugValue />} />
+        <Route path="/hooks/useFormState" element={<HookUseFormState />} />
+        <Route path="/hooks/useFormStatus" element={<HookUseFormStatus />} />
+        <Route path="/hooks/useId" element={<HookUseId />} />
+        <Route path="/hooks/useImperativeHandle" element={<HookUseImperativeHandle />} />
+        <Route path="/hooks/useOptimistic" element={<HookUseOptimistic />} />
+        <Route path="/hooks/useSyncExternalStore" element={<HookUseSyncExternalStore />} />
+        <Route path="/hooks/useInsertionEffect" element={<HookUseInsertionEffect />} />
+        <Route path="/hooks/useCallback" element={<HookuseCallback />} />
+        <Route path="/hooks/useMemo" element={<HookuseMemo />} />
+        <Route path="/hooks/useRef" element={<HookuseRef />} />
+        <Route path="/hooks/useContext" element={<HookuseContext />} />
+        <Route path="/hooks/useReducer" element={<HookuseReducer />} />
+        <Route path="/hooks/useLayoutEffect" element={<HookuseLayoutEffect />} />
+        <Route path="/hooks/useTransition" element={<HookuseTransition />} />
+        <Route path="/hooks/useDeferredValue" element={<HookuseDeferredValue />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
-export default App
+export default App;
