@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import {collection, addDoc, getDocs,  updateDoc,  deleteDoc,  doc} from "firebase/firestore";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "./firebase.js";
 
 export default function Dashboard() {
@@ -120,17 +120,15 @@ export default function Dashboard() {
       {/* Botones de vista */}
       <div className="d-flex justify-content-center mb-4">
         <button
-          className={`btn me-2 ${
-            vista === "productos" ? "btn-primary" : "btn-outline-primary"
-          }`}
+          className={`btn me-2 ${vista === "productos" ? "btn-primary" : "btn-outline-primary"
+            }`}
           onClick={() => setVista("productos")}
         >
           Productos
         </button>
         <button
-          className={`btn ${
-            vista === "proveedores" ? "btn-primary" : "btn-outline-primary"
-          }`}
+          className={`btn ${vista === "proveedores" ? "btn-primary" : "btn-outline-primary"
+            }`}
           onClick={() => setVista("proveedores")}
         >
           Proveedores
@@ -145,7 +143,7 @@ export default function Dashboard() {
         </h5>
         <form onSubmit={handleGuardar}>
           <div className="row g-2">
-            <div className="col-md-4">
+            <div className="col-12 col-md-4">
               <input
                 type="text"
                 className="form-control"
@@ -193,24 +191,18 @@ export default function Dashboard() {
           {(vista === "productos" ? productos : proveedores).map((item) => (
             <li
               key={item.id}
-              className="list-group-item d-flex justify-content-between align-items-center"
+              className="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center"
             >
               <span>
                 {vista === "productos"
                   ? `${item.nombre} - $${item.precio}`
                   : `${item.nombre} - ${item.contacto}`}
               </span>
-              <div>
-                <button
-                  className="btn btn-sm btn-warning me-2"
-                  onClick={() => handleEditar(item)}
-                >
+              <div className="d-flex flex-wrap gap-2 justify-content-end">
+                <button className="btn btn-sm btn-warning" onClick={() => handleEditar(item)}>
                   Editar
                 </button>
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={() => abrirModal(item.id)}
-                >
+                <button className="btn btn-sm btn-danger" onClick={() => abrirModal(item.id)}>
                   Eliminar
                 </button>
               </div>
