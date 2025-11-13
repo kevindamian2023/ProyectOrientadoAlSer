@@ -1,23 +1,47 @@
 import { useState } from "react";
 import { Form, Button, Card } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { 
   signInWithEmailAndPassword, 
   signInWithPopup, 
   GoogleAuthProvider, 
-  GithubAuthProvider 
+  GithubAuthProvider,
+  FacebookAuthProvider
 } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  // Guarda/actualiza el registro del usuario en Firestore
+  const saveUserRecord = async (user, provider) => {
+    if (!user) return;
+    try {
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          uid: user.uid,
+          displayName: user.displayName || "",
+          email: user.email || "",
+          photoURL: user.photoURL || "",
+          provider,
+          lastLogin: serverTimestamp(),
+        },
+        { merge: true }
+      );
+    } catch (e) {
+      console.error("Error guardando usuario:", e);
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      await saveUserRecord(auth.currentUser, "password");
       alert("Inicio de sesión exitoso ✅");
       navigate("/dashboard");
     } catch (error) {
@@ -29,6 +53,7 @@ function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
+      await saveUserRecord(auth.currentUser, "google");
       alert("Inicio de sesión con Google exitoso ✅");
       navigate("/dashboard");
     } catch (error) {
@@ -40,7 +65,21 @@ function LoginPage() {
     const provider = new GithubAuthProvider();
     try {
       await signInWithPopup(auth, provider);
+      await saveUserRecord(auth.currentUser, "github");
       alert("Inicio de sesión con GitHub exitoso ✅");
+      navigate("/dashboard");
+    } catch (error) {
+      alert("Error: " + error.message);
+    }
+  };
+
+  // Nuevo: Inicio de sesión con Facebook
+  const handleFacebookLogin = async () => {
+    const provider = new FacebookAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      await saveUserRecord(auth.currentUser, "facebook");
+      alert("Inicio de sesión con Facebook exitoso ✅");
       navigate("/dashboard");
     } catch (error) {
       alert("Error: " + error.message);
@@ -82,13 +121,13 @@ function LoginPage() {
             </div>
           </Form>
 
-          {/* 🔹 Botones de Google y GitHub */}
-          <div className="d-flex justify-content-between mt-3">
+          {/* 🔹 Botones de Google, Facebook y GitHub */}
+          <div className="d-flex justify-content-between mt-3 gap-2">
             {/* Botón Google */}
             <Button 
               variant="outline-danger" 
               onClick={handleGoogleLogin}
-              className="d-flex align-items-center justify-content-center flex-fill me-2"
+              className="d-flex align-items-center justify-content-center flex-fill"
             >
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -103,6 +142,16 @@ function LoginPage() {
                 <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303 c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
               </svg>
               Google
+            </Button>
+
+            {/* Botón Facebook */}
+            <Button 
+              variant="outline-primary" 
+              onClick={handleFacebookLogin}
+              className="d-flex align-items-center justify-content-center flex-fill"
+            >
+              <i className="bi bi-facebook me-2"></i>
+              Facebook
             </Button>
 
             {/* Botón GitHub */}
