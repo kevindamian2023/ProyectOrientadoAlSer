@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "./firebase.js";
+import LogoutButton from "./Components/LogoutButton.jsx";
 
 export default function Dashboard() {
   const [productos, setProductos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
-  const [vista, setVista] = useState("productos"); // productos | proveedores
+  const [vista, setVista] = useState("productos");
 
   const [nuevo, setNuevo] = useState({ nombre: "", precio: "", contacto: "" });
   const [editandoId, setEditandoId] = useState(null);
@@ -13,241 +14,266 @@ export default function Dashboard() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [idEliminar, setIdEliminar] = useState(null);
 
-  // 🔹 Cargar productos
   const obtenerProductos = async () => {
-    const querySnapshot = await getDocs(collection(db, "productos"));
-    const docs = [];
-    querySnapshot.forEach((doc) => {
-      docs.push({ id: doc.id, ...doc.data() });
-    });
-    setProductos(docs);
+    const query = await getDocs(collection(db, "productos"));
+    setProductos(query.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
 
-  // 🔹 Cargar proveedores
   const obtenerProveedores = async () => {
-    const querySnapshot = await getDocs(collection(db, "proveedores"));
-    const docs = [];
-    querySnapshot.forEach((doc) => {
-      docs.push({ id: doc.id, ...doc.data() });
-    });
-    setProveedores(docs);
+    const query = await getDocs(collection(db, "proveedores"));
+    setProveedores(query.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
 
-  // 🔹 Cargar datos iniciales
   useEffect(() => {
     vista === "productos" ? obtenerProductos() : obtenerProveedores();
   }, [vista]);
 
-  // 🔹 Crear o actualizar registro
   const handleGuardar = async (e) => {
     e.preventDefault();
     try {
       if (vista === "productos") {
         if (editandoId) {
-          // actualizar
-          const ref = doc(db, "productos", editandoId);
-          await updateDoc(ref, {
+          await updateDoc(doc(db, "productos", editandoId), {
             nombre: nuevo.nombre,
-            precio: parseFloat(nuevo.precio)
+            precio: parseFloat(nuevo.precio),
           });
-          alert("Producto actualizado ✅");
+          alert("Producto actualizado");
         } else {
-          // crear
           await addDoc(collection(db, "productos"), {
             nombre: nuevo.nombre,
-            precio: parseFloat(nuevo.precio)
+            precio: parseFloat(nuevo.precio),
           });
-          alert("Producto agregado ✅");
+          alert("Producto agregado");
         }
         obtenerProductos();
       } else {
         if (editandoId) {
-          const ref = doc(db, "proveedores", editandoId);
-          await updateDoc(ref, {
+          await updateDoc(doc(db, "proveedores", editandoId), {
             nombre: nuevo.nombre,
-            contacto: nuevo.contacto
+            contacto: nuevo.contacto,
           });
-          alert("Proveedor actualizado ✅");
+          alert("Proveedor actualizado");
         } else {
           await addDoc(collection(db, "proveedores"), {
             nombre: nuevo.nombre,
-            contacto: nuevo.contacto
+            contacto: nuevo.contacto,
           });
-          alert("Proveedor agregado ✅");
+          alert("Proveedor agregado");
         }
         obtenerProveedores();
       }
 
       setNuevo({ nombre: "", precio: "", contacto: "" });
       setEditandoId(null);
+
     } catch (e) {
-      console.error("Error al guardar: ", e);
+      console.error("Error al guardar", e);
     }
   };
 
-  // 🔹 Editar registro
   const handleEditar = (item) => {
     setEditandoId(item.id);
     setNuevo(item);
   };
 
-  // 🔹 Abrir modal de confirmación
-  const abrirModal = (id) => {
-    setIdEliminar(id);
-    setMostrarModal(true);
-  };
-
-  // 🔹 Confirmar eliminación
   const confirmarEliminar = async () => {
     try {
-      if (vista === "productos") {
-        await deleteDoc(doc(db, "productos", idEliminar));
-        obtenerProductos();
-      } else {
-        await deleteDoc(doc(db, "proveedores", idEliminar));
-        obtenerProveedores();
-      }
-      alert("Registro eliminado ✅");
+      await deleteDoc(doc(db, vista, idEliminar));
+      vista === "productos" ? obtenerProductos() : obtenerProveedores();
+      alert("Eliminado");
     } catch (e) {
-      console.error("Error al eliminar: ", e);
+      console.error(e);
     }
     setMostrarModal(false);
-    setIdEliminar(null);
   };
 
   return (
-    <div className="container py-4">
-      {/* Botones de vista */}
-      <div className="d-flex justify-content-center mb-4">
-        <button
-          className={`btn me-2 ${vista === "productos" ? "btn-primary" : "btn-outline-primary"
-            }`}
-          onClick={() => setVista("productos")}
-        >
-          Productos
-        </button>
-        <button
-          className={`btn ${vista === "proveedores" ? "btn-primary" : "btn-outline-primary"
-            }`}
-          onClick={() => setVista("proveedores")}
-        >
-          Proveedores
-        </button>
+    <div className="d-flex">
+
+      {/* ====================== SIDEBAR ====================== */}
+      <div
+        className="border-end bg-light p-3"
+        id="sidebar"
+        style={{
+          width: "230px",
+          minHeight: "100vh",
+        }}
+      >
+        {/* HEADER DEL SIDEBAR */}
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="fw-bold m-0">Panel</h5>
+        </div>
+
+        {/* MENÚ PRINCIPAL */}
+        <ul className="nav flex-column">
+
+          {/* Productos */}
+          <li className="nav-item mb-2">
+            <button
+              className={`btn w-100 text-start d-flex align-items-center gap-2 ${
+                vista === "productos" ? "btn-primary text-white" : "btn-outline-primary"
+              }`}
+              onClick={() => setVista("productos")}
+            >
+              <i className="bi bi-box-seam"></i>
+              <span className="sidebar-text">Productos</span>
+            </button>
+          </li>
+
+          {/* Proveedores */}
+          <li className="nav-item mb-3">
+            <button
+              className={`btn w-100 text-start d-flex align-items-center gap-2 ${
+                vista === "proveedores" ? "btn-primary text-white" : "btn-outline-primary"
+              }`}
+              onClick={() => setVista("proveedores")}
+            >
+              <i className="bi bi-people"></i>
+              <span className="sidebar-text">Proveedores</span>
+            </button>
+          </li>
+
+          {/* SUBMENÚ */}
+          <li className="nav-item">
+            <button
+              className="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center"
+              data-bs-toggle="collapse"
+              data-bs-target="#submenuConfig"
+            >
+              <span>
+                <i className="bi bi-gear"></i>{" "}
+                <span className="sidebar-text">Configuración</span>
+              </span>
+
+              <i className="bi bi-chevron-down"></i>
+            </button>
+
+            <ul className="collapse ps-4 mt-2" id="submenuConfig">
+              <li><a className="d-block py-1 text-secondary" href="#">Perfil</a></li>
+              <li><a className="d-block py-1 text-secondary" href="#">Cambiar clave</a></li>
+            </ul>
+          </li>
+
+          <hr />
+
+          <LogoutButton />
+        </ul>
       </div>
 
-      {/* Formulario */}
-      <div className="card p-3 shadow mb-4">
-        <h5 className="fw-bold">
-          {editandoId ? "Editar" : "Crear"}{" "}
-          {vista === "productos" ? "Producto" : "Proveedor"}
-        </h5>
-        <form onSubmit={handleGuardar}>
-          <div className="row g-2">
-            <div className="col-12 col-md-4">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Nombre"
-                value={nuevo.nombre}
-                onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
-              />
-            </div>
-            {vista === "productos" ? (
-              <div className="col-md-4">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Precio"
-                  value={nuevo.precio}
-                  onChange={(e) => setNuevo({ ...nuevo, precio: e.target.value })}
-                />
-              </div>
-            ) : (
+      {/* ====================== CONTENIDO ====================== */}
+      <div className="container py-4" style={{ flexGrow: 1 }}>
+        
+        {/* FORMULARIO */}
+        <div className="card p-3 shadow mb-4">
+          <h5 className="fw-bold">
+            {editandoId ? "Editar" : "Crear"} {vista === "productos" ? "Producto" : "Proveedor"}
+          </h5>
+
+          <form onSubmit={handleGuardar}>
+            <div className="row g-2">
               <div className="col-md-4">
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Contacto"
-                  value={nuevo.contacto}
-                  onChange={(e) =>
-                    setNuevo({ ...nuevo, contacto: e.target.value })
-                  }
+                  placeholder="Nombre"
+                  value={nuevo.nombre}
+                  onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
                 />
               </div>
-            )}
-            <div className="col-md-4">
-              <button className="btn btn-primary w-100" type="submit">
-                {editandoId ? "Actualizar" : "Guardar"}
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
 
-      {/* Listado */}
-      <div className="card p-3 shadow">
-        <h5 className="fw-bold">Lista de {vista}</h5>
-        <ul className="list-group">
-          {(vista === "productos" ? productos : proveedores).map((item) => (
-            <li
-              key={item.id}
-              className="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center"
-            >
-              <span>
-                {vista === "productos"
-                  ? `${item.nombre} - $${item.precio}`
-                  : `${item.nombre} - ${item.contacto}`}
-              </span>
-              <div className="d-flex flex-wrap gap-2 justify-content-end">
-                <button className="btn btn-sm btn-warning" onClick={() => handleEditar(item)}>
-                  Editar
-                </button>
-                <button className="btn btn-sm btn-danger" onClick={() => abrirModal(item.id)}>
-                  Eliminar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+              {vista === "productos" ? (
+                <div className="col-md-4">
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Precio"
+                    value={nuevo.precio}
+                    onChange={(e) => setNuevo({ ...nuevo, precio: e.target.value })}
+                  />
+                </div>
+              ) : (
+                <div className="col-md-4">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Contacto"
+                    value={nuevo.contacto}
+                    onChange={(e) => setNuevo({ ...nuevo, contacto: e.target.value })}
+                  />
+                </div>
+              )}
 
-      {/* Modal confirmación */}
-      {mostrarModal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ background: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content rounded-4 shadow">
-              <div className="modal-header bg-danger text-white">
-                <h5 className="modal-title">⚠️ Confirmar eliminación</h5>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setMostrarModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p className="mb-0">
-                  ¿Estás seguro de que deseas eliminar este registro?
-                </p>
-              </div>
-              <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setMostrarModal(false)}
-                >
-                  Cancelar
-                </button>
-                <button className="btn btn-danger" onClick={confirmarEliminar}>
-                  Sí, eliminar
+              <div className="col-md-4">
+                <button className="btn btn-primary w-100">
+                  {editandoId ? "Actualizar" : "Guardar"}
                 </button>
               </div>
             </div>
-          </div>
+          </form>
         </div>
-      )}
+
+        {/* LISTA */}
+        <div className="card p-3 shadow">
+          <h5 className="fw-bold">Lista de {vista}</h5>
+
+          <ul className="list-group">
+            {(vista === "productos" ? productos : proveedores).map((item) => (
+              <li key={item.id} className="list-group-item d-flex justify-content-between">
+                <span>
+                  {vista === "productos"
+                    ? `${item.nombre} - $${item.precio}`
+                    : `${item.nombre} - ${item.contacto}`}
+                </span>
+
+                <div className="d-flex gap-2">
+                  <button className="btn btn-warning btn-sm" onClick={() => handleEditar(item)}>
+                    Editar
+                  </button>
+
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => {
+                      setIdEliminar(item.id);
+                      setMostrarModal(true);
+                    }}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* MODAL */}
+        {mostrarModal && (
+          <div className="modal fade show d-block" style={{ background: "rgba(0,0,0,0.5)" }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title">Confirmar eliminación</h5>
+                  <button
+                    className="btn-close btn-close-white"
+                    onClick={() => setMostrarModal(false)}
+                  ></button>
+                </div>
+
+                <div className="modal-body">¿Seguro que deseas eliminar este registro?</div>
+
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" onClick={() => setMostrarModal(false)}>
+                    Cancelar
+                  </button>
+                  <button className="btn btn-danger" onClick={confirmarEliminar}>
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
