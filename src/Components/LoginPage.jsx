@@ -246,60 +246,82 @@ function LoginPage() {
     }
   };
 
-  const handleGithubLogin = async () => {
-    const provider = new GithubAuthProvider();
-    provider.addScope("user:email"); // importante para pedir emails a GitHub
+const handleGithubLogin = async () => {
+  const provider = new GithubAuthProvider();
+  provider.addScope("user:email");
 
-    try {
-      const result = await signInWithPopup(auth, provider);
+  try {
+    // Login normal con GitHub
+    const result = await signInWithPopup(auth, provider);
+    await saveUserRecord(result.user);
 
-      // Si GitHub no aporta result.user.email, intentar obtener desde token
-      let finalEmail = result.user?.email || null;
-      const cred = GithubAuthProvider.credentialFromResult?.(result) || null;
-      const token = cred?.accessToken || cred?.oauthAccessToken || cred?.access_token || null;
-      console.log("GitHub signIn result.user.email:", finalEmail);
-      console.log("GitHub credential from result:", cred);
-      if (!finalEmail && token) {
-        console.log("Intentando obtener email desde GitHub API con token...");
-        const fetched = await getPrimaryEmailFromGithubToken(token);
-        if (fetched) {
-          finalEmail = fetched;
-          console.log("Email obtenido desde GitHub API post-login:", finalEmail);
-        } else {
-          console.log("No se obtuvo email desde GitHub API post-login.");
-        }
+    alert("Inicio de sesión con GitHub exitoso ✅");
+    navigate("/dashboard");
+  } catch (error) {
+    console.error("GitHub login error:", error);
+
+    // --- CASO CLAVE: correo existe con otro proveedor ---
+    if (error.code === "auth/account-exists-with-different-credential") {
+      const email = error.customData?.email;
+      const pendingCred = GithubAuthProvider.credentialFromError(error);
+
+      if (!email) {
+        alert("GitHub no entregó el correo. Haz público tu email en GitHub → Settings → Emails.");
+        return;
       }
 
-      await saveUserRecord(result.user);
-      alert("Inicio de sesión con GitHub exitoso ✅");
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("GitHub login error:", error);
+      // Ver qué métodos YA están asociados al correo
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      console.log("Métodos existentes:", methods);
 
-      // Depuración rápida: imprime customData y la pending credential si existe
-      console.log("error.customData:", error?.customData);
-      try {
-        const pending = GithubAuthProvider.credentialFromError?.(error);
-        console.log("pending credential (fromError):", pending);
-        console.log("pending.accessToken:", pending?.accessToken || pending?.oauthAccessToken || pending?.access_token);
-      } catch (e) {
-        console.error("Error extrayendo pending credential:", e);
+      // 1️⃣ Cuenta existe con Google → enlazar
+      if (methods.includes("google.com")) {
+        const googleProvider = new GoogleAuthProvider();
+        const googleResult = await signInWithPopup(auth, googleProvider);
+
+        // Enlazar GitHub a la cuenta de Google
+        await linkWithCredential(googleResult.user, pendingCred);
+
+        await saveUserRecord(googleResult.user);
+        alert("GitHub enlazado correctamente con tu cuenta de Google 🎉");
+        navigate("/dashboard");
+        return;
       }
 
-      if (error?.code === "auth/account-exists-with-different-credential") {
-        try {
-          await handleAccountExistsWithDifferentCredential(error);
-          alert("Cuentas enlazadas correctamente. Ya puedes entrar con Google o GitHub.");
-          navigate("/dashboard");
-        } catch (e) {
-          console.error("No se pudo auto-enlazar:", e);
-          alert(e.message || "No se pudo enlazar automáticamente. Inicia sesión con el proveedor original y enlaza desde tu perfil.");
-        }
-      } else {
-        alert("Error: " + (error.message || error.code || error));
+      // 2️⃣ Cuenta existe con Facebook → enlazar
+      if (methods.includes("facebook.com")) {
+        const fbProvider = new FacebookAuthProvider();
+        const fbResult = await signInWithPopup(auth, fbProvider);
+
+        await linkWithCredential(fbResult.user, pendingCred);
+
+        await saveUserRecord(fbResult.user);
+        alert("GitHub se enlazó a tu cuenta de Facebook 🎉");
+        navigate("/dashboard");
+        return;
       }
+
+      // 3️⃣ Existe con email/contraseña → pedir login normal primero
+      if (methods.includes("password")) {
+        alert(
+          "Este correo ya tiene email/contraseña. Inicia sesión con tu contraseña y luego enlaza GitHub desde tu perfil."
+        );
+        return;
+      }
+
+      alert("Este correo ya tiene otro método de inicio. No se pudo completar el login.");
+      return;
     }
-  };
+
+    // --- Cualquier otro error ---
+    alert("Error: " + error.message);
+  }
+};
+
+
+
+
+
 
   const handleFacebookLogin = async () => {
     const provider = new FacebookAuthProvider();
