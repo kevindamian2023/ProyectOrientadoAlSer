@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "./firebase.js";
+import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import "./Dashboard.css";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [vista, setVista] = useState("productos"); // productos | proveedores
@@ -115,135 +121,262 @@ export default function Dashboard() {
     setIdEliminar(null);
   };
 
+  // 🔹 Exportar a Excel
+  const exportarExcel = () => {
+    console.log("Iniciando exportación a Excel...");
+    try {
+      const datos = vista === "productos" ? productos : proveedores;
+      console.log("Datos a exportar:", datos);
+
+      if (datos.length === 0) {
+        alert("No hay datos para exportar");
+        return;
+      }
+
+      // Preparar datos para Excel
+      const datosExcel = datos.map((item) => {
+        if (vista === "productos") {
+          return {
+            Nombre: item.nombre,
+            Precio: `$${item.precio?.toFixed(2) || "0.00"}`
+          };
+        } else {
+          return {
+            Nombre: item.nombre,
+            Contacto: item.contacto
+          };
+        }
+      });
+
+      console.log("Datos formateados:", datosExcel);
+
+      // Crear libro de trabajo
+      const ws = XLSX.utils.json_to_sheet(datosExcel);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, vista === "productos" ? "Productos" : "Proveedores");
+
+      // Descargar archivo
+      const nombreArchivo = `${vista}_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`;
+      console.log("Descargando archivo:", nombreArchivo);
+      XLSX.writeFile(wb, nombreArchivo);
+      alert(`✅ Archivo Excel descargado: ${nombreArchivo}`);
+    } catch (error) {
+      console.error("Error al exportar a Excel:", error);
+      alert(`Error al exportar a Excel: ${error.message}`);
+    }
+  };
+
+  // 🔹 Exportar a PDF
+  const exportarPDF = () => {
+    console.log("Iniciando exportación a PDF...");
+    try {
+      const datos = vista === "productos" ? productos : proveedores;
+      console.log("Datos a exportar:", datos);
+
+      if (datos.length === 0) {
+        alert("No hay datos para exportar");
+        return;
+      }
+
+      const doc = new jsPDF();
+
+      // Título
+      doc.setFontSize(18);
+      doc.text(vista === "productos" ? "Lista de Productos" : "Lista de Proveedores", 14, 20);
+
+      // Fecha
+      doc.setFontSize(10);
+      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 14, 28);
+
+      // Preparar datos para la tabla
+      const columnas = vista === "productos"
+        ? ["Nombre", "Precio"]
+        : ["Nombre", "Contacto"];
+
+      const filas = datos.map((item) => {
+        if (vista === "productos") {
+          return [item.nombre, `$${item.precio?.toFixed(2) || "0.00"}`];
+        } else {
+          return [item.nombre, item.contacto];
+        }
+      });
+
+      console.log("Columnas:", columnas);
+      console.log("Filas:", filas);
+
+      // Crear tabla
+      doc.autoTable({
+        head: [columnas],
+        body: filas,
+        startY: 35,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [102, 126, 234],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        styles: {
+          fontSize: 10,
+          cellPadding: 5
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        }
+      });
+
+      // Descargar PDF
+      const nombreArchivo = `${vista}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
+      console.log("Descargando archivo:", nombreArchivo);
+      doc.save(nombreArchivo);
+      alert(`✅ Archivo PDF descargado: ${nombreArchivo}`);
+    } catch (error) {
+      console.error("Error al exportar a PDF:", error);
+      alert(`Error al exportar a PDF: ${error.message}`);
+    }
+  };
+
   return (
-    <div className="container py-4">
-      {/* Botones de vista */}
-      <div className="d-flex justify-content-center mb-4">
+    <div className="dashboard-container">
+      {/* Header */}
+      <div className="dashboard-header">
+        <button className="btn-back-home" onClick={() => navigate("/home")}>
+          ← Volver a Inicio
+        </button>
+        <h1 className="dashboard-title">Panel de Control</h1>
+        <p className="dashboard-subtitle">Gestiona tus productos y proveedores de manera eficiente</p>
+      </div>
+
+      {/* Tab Buttons */}
+      <div className="tab-buttons">
         <button
-          className={`btn me-2 ${vista === "productos" ? "btn-primary" : "btn-outline-primary"
-            }`}
+          className={vista === "productos" ? "tab-btn tab-btn-active" : "tab-btn tab-btn-inactive"}
           onClick={() => setVista("productos")}
         >
-          Productos
+          📦 Productos
         </button>
         <button
-          className={`btn ${vista === "proveedores" ? "btn-primary" : "btn-outline-primary"
-            }`}
+          className={vista === "proveedores" ? "tab-btn tab-btn-active" : "tab-btn tab-btn-inactive"}
           onClick={() => setVista("proveedores")}
         >
-          Proveedores
+          🏢 Proveedores
         </button>
       </div>
 
-      {/* Formulario */}
-      <div className="card p-3 shadow mb-4">
-        <h5 className="fw-bold">
+      {/* Export Buttons */}
+      <div className="export-buttons">
+        <button className="btn-export btn-excel" onClick={exportarExcel}>
+          <span className="export-icon">📊</span>
+          Exportar a Excel
+        </button>
+        <button className="btn-export btn-pdf" onClick={exportarPDF}>
+          <span className="export-icon">📄</span>
+          Exportar a PDF
+        </button>
+      </div>
+
+      {/* Form Card */}
+      <div className="glass-card">
+        <h2 className="card-title">
           {editandoId ? "Editar" : "Crear"}{" "}
           {vista === "productos" ? "Producto" : "Proveedor"}
-        </h5>
+        </h2>
         <form onSubmit={handleGuardar}>
-          <div className="row g-2">
-            <div className="col-12 col-md-4">
+          <div className="form-row">
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Nombre"
+              value={nuevo.nombre}
+              onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
+              required
+            />
+            {vista === "productos" ? (
+              <input
+                type="number"
+                className="input-field"
+                placeholder="Precio"
+                value={nuevo.precio}
+                onChange={(e) => setNuevo({ ...nuevo, precio: e.target.value })}
+                required
+              />
+            ) : (
               <input
                 type="text"
-                className="form-control"
-                placeholder="Nombre"
-                value={nuevo.nombre}
-                onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
+                className="input-field"
+                placeholder="Contacto"
+                value={nuevo.contacto}
+                onChange={(e) => setNuevo({ ...nuevo, contacto: e.target.value })}
+                required
               />
-            </div>
-            {vista === "productos" ? (
-              <div className="col-md-4">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Precio"
-                  value={nuevo.precio}
-                  onChange={(e) => setNuevo({ ...nuevo, precio: e.target.value })}
-                />
-              </div>
-            ) : (
-              <div className="col-md-4">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Contacto"
-                  value={nuevo.contacto}
-                  onChange={(e) =>
-                    setNuevo({ ...nuevo, contacto: e.target.value })
-                  }
-                />
-              </div>
             )}
-            <div className="col-md-4">
-              <button className="btn btn-primary w-100" type="submit">
-                {editandoId ? "Actualizar" : "Guardar"}
-              </button>
-            </div>
+            <button className="btn-primary-custom" type="submit">
+              {editandoId ? "✓ Actualizar" : "✓ Guardar"}
+            </button>
           </div>
         </form>
       </div>
 
-      {/* Listado */}
-      <div className="card p-3 shadow">
-        <h5 className="fw-bold">Lista de {vista}</h5>
-        <ul className="list-group">
-          {(vista === "productos" ? productos : proveedores).map((item) => (
-            <li
-              key={item.id}
-              className="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center"
-            >
-              <span>
-                {vista === "productos"
-                  ? `${item.nombre} - $${item.precio}`
-                  : `${item.nombre} - ${item.contacto}`}
-              </span>
-              <div className="d-flex flex-wrap gap-2 justify-content-end">
-                <button className="btn btn-sm btn-warning" onClick={() => handleEditar(item)}>
-                  Editar
-                </button>
-                <button className="btn btn-sm btn-danger" onClick={() => abrirModal(item.id)}>
-                  Eliminar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+      {/* List Card */}
+      <div className="glass-card">
+        <h2 className="card-title">
+          Lista de {vista === "productos" ? "Productos" : "Proveedores"}
+        </h2>
+        {(vista === "productos" ? productos : proveedores).length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">📭</div>
+            <p className="empty-state-text">
+              No hay {vista} registrados aún
+            </p>
+          </div>
+        ) : (
+          <ul className="items-list">
+            {(vista === "productos" ? productos : proveedores).map((item) => (
+              <li key={item.id} className="list-item">
+                <span className="item-content">
+                  {vista === "productos"
+                    ? `${item.nombre} - $${item.precio}`
+                    : `${item.nombre} - ${item.contacto}`}
+                </span>
+                <div className="item-actions">
+                  <button className="btn-edit" onClick={() => handleEditar(item)}>
+                    ✏️ Editar
+                  </button>
+                  <button className="btn-delete" onClick={() => abrirModal(item.id)}>
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      {/* Modal confirmación */}
+      {/* Modal */}
       {mostrarModal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ background: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content rounded-4 shadow">
-              <div className="modal-header bg-danger text-white">
-                <h5 className="modal-title">⚠️ Confirmar eliminación</h5>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setMostrarModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p className="mb-0">
-                  ¿Estás seguro de que deseas eliminar este registro?
-                </p>
-              </div>
-              <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setMostrarModal(false)}
-                >
-                  Cancelar
-                </button>
-                <button className="btn btn-danger" onClick={confirmarEliminar}>
-                  Sí, eliminar
-                </button>
-              </div>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="modal-title">⚠️ Confirmar eliminación</h3>
+              <button
+                className="btn-close"
+                onClick={() => setMostrarModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>¿Estás seguro de que deseas eliminar este registro?</p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn-secondary"
+                onClick={() => setMostrarModal(false)}
+              >
+                Cancelar
+              </button>
+              <button className="btn-danger" onClick={confirmarEliminar}>
+                Sí, eliminar
+              </button>
             </div>
           </div>
         </div>
