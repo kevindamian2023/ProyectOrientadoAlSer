@@ -25,7 +25,7 @@ export default function Dashboard() {
   useEffect(() => {
     const inicializarSesion = async () => {
       if (!sessionManager.recuperarSesion()) {
-        await sessionManager.registrarLogin("Usuario Demo");
+        await sessionManager.registrarLogin();
       }
     };
     inicializarSesion();
@@ -124,6 +124,7 @@ export default function Dashboard() {
     }
     setMostrarModal(false);
   };
+  
 
   // ----------------- JSX -----------------
   // Nota: incluimos un <style> con CSS puro para manejar el slide en móvil (Bootstrap + CSS)
