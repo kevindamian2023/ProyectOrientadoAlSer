@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "../firebase.js";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { jsPDF } from "jspdf";
+import * as XLSX from "xlsx";
 
 export default function TablaAuditoria({ mostrar, onCerrar }) {
   const [registros, setRegistros] = useState([]);
