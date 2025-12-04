@@ -2,8 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./Components/LoginPage";
 import RegisterPage from "./Components/RegisterPage";
 import RecuperarContraseña from "./Components/RecuperarContraseña";
-import Dashboard from "./Dashboard"; 
-import PrivateRoute from "./Components/PrivateRoute"; // lo usaremos para proteger el dashboard
+import HomePage from "./Components/HomePage";
+import Dashboard from "./Dashboard";
+import PrivateRoute from "./Components/PrivateRoute";
 
 function App() {
   return (
@@ -15,7 +16,15 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/reset-password" element={<RecuperarContraseña />} />
 
-        {/* Ruta privada */}
+        {/* Rutas privadas */}
+        <Route
+          path="/home"
+          element={
+            <PrivateRoute>
+              <HomePage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={
